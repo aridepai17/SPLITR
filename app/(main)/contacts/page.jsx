@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useConvexQuery } from "@/hooks/use-convex-query";
@@ -113,7 +113,7 @@ export default function ContactsPage() {
 					{groups.length === 0 ? (
 						<Card>
 							<CardContent className="py-6 text-center text-muted-foreground">
-								No groups yet.Create a group to start tracking
+								No groups yet. Create a group to start tracking
 								shared expenses.
 							</CardContent>
 						</Card>
@@ -155,7 +155,7 @@ export default function ContactsPage() {
 				isOpen={isCreateGroupModalOpen}
 				onClose={() => setIsCreateGroupModalOpen(false)}
 				onSuccess={(groupId) => {
-					router.push(`/groups//${groupId}`);
+					router.push(`/groups/${groupId}`);
 				}}
 			/>
 		</div>
