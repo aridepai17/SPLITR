@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 import { LayoutDashboard } from "lucide-react";
 
 const Header = () => {
-	const { isLoading } = useStoreUser;
+	const { isLoading } = useStoreUser();
 	const path = usePathname();
 
 	return (
