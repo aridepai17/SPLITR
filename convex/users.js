@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
@@ -37,7 +37,7 @@ export const store = mutation({
 });
 
 // Get current user
-export const getCurrentUser = query({
+export const getCurrentUser = internalQuery({
 	handler: async (ctx) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {
@@ -98,7 +98,7 @@ export const searchUsers = query({
 			.filter((user) => user._id !== currentUser._id)
 			.map((user) => ({
 				id: user._id,
-				naem: user.name,
+				name: user.name,
 				email: user.email,
 				imageUrl: user.imageUrl,
 			}));
