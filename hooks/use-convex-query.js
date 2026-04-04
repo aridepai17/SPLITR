@@ -13,15 +13,9 @@ export const useConvexQuery = (query, ...args) => {
 		if (result === undefined) {
 			setIsLoading(true);
 		} else {
-			try {
-				setData(result);
-				setError(null);
-			} catch (err) {
-				setError(err);
-				toast.error(err.message);
-			} finally {
-				setIsLoading(false);
-			}
+			setData(result);
+			setError(null);
+			setIsLoading(false);
 		}
 	}, [result]);
 
