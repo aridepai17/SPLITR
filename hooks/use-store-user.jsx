@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
-export function useStoreUserEffect() {
+export function useStoreUser() {
 	const { isLoading, isAuthenticated } = useConvexAuth();
 	const { user } = useUser();
 	// When this state is set we know the server
