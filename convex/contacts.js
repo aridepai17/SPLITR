@@ -22,7 +22,7 @@ export const getAllContacts = query({
 		const expensesNotPaidByYou = (
 			await ctx.db
 				.query("expenses")
-				.withIndex("by_group", (q) => q.eq("groupdId", undefined)) // only 1-to-1
+				.withIndex("by_group", (q) => q.eq("groupId", undefined)) // only 1-to-1
 				.collect()
 		).filter(
 			(e) =>
@@ -71,10 +71,11 @@ export const getAllContacts = query({
 			}));
 
 		// Sort alphabetically
-		contactUsers.sort((a, b) => a?.name.localeCompare(b?.name));
+		contactUsers = contactUsers.filter(Boolean);
+		contactUsers.sort((a, b) => a.name.localeCompare(b.name));
 		userGroups.sort((a, b) => a.name.localeCompare(b.name));
 
-		return { users: contactUsers.filter(Boolean), groups: userGroups };
+		return { users: contactUsers, groups: userGroups };
 	},
 });
 
