@@ -8,12 +8,31 @@ export const getUserBalances = query({
 		const user = await ctx.runQuery(internal.users.getCurrentUser);
 
 		/* ───────────── 1‑to‑1 expenses (no groupId) ───────────── */
-		const expenses = (await ctx.db.query("expenses").collect()).filter(
-			(e) =>
-				!e.groupId && // 1 to 1 only
-				(e.paidByUserId === user._id ||
-					e.splits.some((s) => s.userId === user._id)),
-		);
+		// Get expenses where user is payer
+		const expensesAsPayer = await ctx.db
+			.query("expenses")
+			.withIndex("by_user_and_group", q => q
+				.eq("paidByUserId", user._id)
+				.eq("groupId", undefined)
+			)
+			.collect();
+
+		// Get expenses where user is a participant
+		const expensesAsParticipant = await ctx.db
+			.query("expenses")
+			.withIndex("by_participant", q => q
+				.eq("userId", user._id)
+				.eq("groupId", undefined)
+			)
+			.collect();
+
+		// Merge and deduplicate expenses
+		const expenseIds = new Set();
+		const expenses = [...expensesAsPayer, ...expensesAsParticipant].filter(e => {
+			if (expenseIds.has(e._id)) return false;
+			expenseIds.add(e._id);
+			return true;
+		});
 
 		/* tallies */
 		let youOwe = 0;
@@ -41,14 +60,25 @@ export const getUserBalances = query({
 		}
 
 		/* ───────────── 1‑to‑1 settlements (no groupId) ───────────── */
-		const settlements = (
-			await ctx.db.query("settlements").collect()
-		).filter(
-			(s) =>
-				!s.groupId &&
-				(s.paidByUserId === user._id ||
-					s.receivedByUserId === user._id),
-		);
+		// Get settlements sent by user
+		const settlementsSent = await ctx.db
+			.query("settlements")
+			.withIndex("by_payer_and_group", q => q
+				.eq("paidByUserId", user._id)
+				.eq("groupId", undefined)
+			)
+			.collect();
+
+		// Get settlements received by user
+		const settlementsReceived = await ctx.db
+			.query("settlements")
+			.withIndex("by_receiver_and_group", q => q
+				.eq("receivedByUserId", user._id)
+				.eq("groupId", undefined)
+			)
+			.collect();
+
+		const settlements = [...settlementsSent, ...settlementsReceived];
 
 		for (const s of settlements) {
 			if (s.paidByUserId === user._id) {
@@ -199,13 +229,11 @@ export const getUserGroups = query({
 	handler: async (ctx) => {
 		const user = await ctx.runQuery(internal.users.getCurrentUser);
 
-		// Get all groups
-		const allGroups = await ctx.db.query("groups").collect();
-
-		// Filter for groups where the user is a member
-		const groups = allGroups.filter((group) =>
-			group.members.some((member) => member.userId === user._id),
-		);
+		// Indexed lookup of groups where user is a member
+		const groups = await ctx.db
+			.query("groups")
+			.withIndex("by_member", q => q.eq("members.userId", user._id))
+			.collect();
 
 		// Calculate balances for each group
 		const enhancedGroups = await Promise.all(
