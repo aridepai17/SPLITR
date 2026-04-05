@@ -45,7 +45,8 @@ export default defineSchema({
 				joinedAt: v.number(),
 			}),
 		),
-	}),
+	})
+		.index("by_member", ["members.userId"]),
 
 	settlements: defineTable({
 		amount: v.number(),
