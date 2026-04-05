@@ -100,7 +100,7 @@ export default function Dashboard() {
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold text-green-600">
-									${balances?.youAreOwed.toFixed(2)}
+									${balances?.youAreOwed?.toFixed(2) ?? "0.00"}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
 									From{" "}
@@ -121,7 +121,7 @@ export default function Dashboard() {
 								{balances?.oweDetails?.youOwe?.length > 0 ? (
 									<>
 										<div className="text-2xl font-bold text-red-600">
-											${balances?.youOwe.toFixed(2)}
+											${balances?.youOwe?.toFixed(2) ?? "0.00"}
 										</div>
 										<p className="text-xs text-muted-foreground mt-1">
 											To{" "}
