@@ -132,7 +132,7 @@ export const getTotalSpent = query({
 });
 
 // Get monthly spending
-export const getMontlySpending = query({
+export const getMonthlySpending = query({
 	handler: async (ctx) => {
 		const user = await ctx.runQuery(internal.users.getCurrentUser);
 
