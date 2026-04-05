@@ -53,9 +53,10 @@ export function ExpenseSummary({ monthlySpending, totalSpent }) {
 						</p>
 						<h3 className="text-2xl font-bold mt-1">
 							$
-							{monthlySpending?.[currentMonth]?.total.toFixed(
-								2,
-							) || "0.00"}
+							{(monthlySpending?.find(item => {
+								const d = new Date(item.month);
+								return d.getMonth() === currentMonth && d.getFullYear() === new Date().getFullYear();
+							})?.total || 0).toFixed(2)}
 						</h3>
 					</div>
 					<div className="bg-muted rounded-lg p-4">
