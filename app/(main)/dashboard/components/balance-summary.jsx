@@ -21,7 +21,7 @@ export function BalanceSummary({ balances }) {
 
 			{hasOwed && (
 				<div>
-					<h3 className="text-ms font-medium flex items-center mb-3">
+					<h3 className="text-sm font-medium flex items-center mb-3">
 						<ArrowUpCircle className="h-4 w-4 text-green-500 mr-2" />
 						Owed to you
 					</h3>
@@ -32,7 +32,7 @@ export function BalanceSummary({ balances }) {
 								key={item.userId}
 								className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
 							>
-								<div className="flex item-center gap-2">
+								<div className="flex items-center gap-2">
 									<Avatar className="h-8 w-8">
 										<AvatarImage src={item.imageUrl} />
 										<AvatarFallback>
@@ -73,7 +73,7 @@ export function BalanceSummary({ balances }) {
 									<span className="text-sm">{item.name}</span>
 								</div>
 								<span className="font-medium text-red-600">
-									${item.amoutn.toFixed(2)}
+									${item.amount.toFixed(2)}
 								</span>
 							</Link>
 						))}
