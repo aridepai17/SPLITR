@@ -127,6 +127,9 @@ export const getGroupExpenses = query({
 		const memberDetails = await Promise.all(
 			group.members.map(async (m) => {
 				const u = await ctx.db.get(m.userId);
+				// Gracefully handle deleted users
+				if (!u) return null;
+
 				return {
 					id: u._id,
 					name: u.name,
@@ -135,7 +138,10 @@ export const getGroupExpenses = query({
 				};
 			}),
 		);
-		const memberIds = memberDetails.map((m) => m.id);
+
+		// Filter out any deleted users that returned null
+		const validMemberDetails = memberDetails.filter(m => m !== null);
+		const memberIds = validMemberDetails.map((m) => m.id);
 
 		/* ──────────────────────────────────────────────────────────────────────────
             BALANCE CALCULATION ENGINE
