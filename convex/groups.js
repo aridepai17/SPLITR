@@ -140,7 +140,7 @@ export const getGroupExpenses = query({
 		);
 
 		// Filter out any deleted users that returned null
-		const validMemberDetails = memberDetails.filter(m => m !== null);
+		const validMemberDetails = memberDetails.filter((m) => m !== null);
 		const memberIds = validMemberDetails.map((m) => m.id);
 
 		/* ──────────────────────────────────────────────────────────────────────────
@@ -164,12 +164,16 @@ export const getGroupExpenses = query({
 		// First pass: Apply all expenses to the ledger
 		for (const expense of expenses) {
 			const payer = expense.paidByUserId;
+			// Skip expenses from deleted users not in current member set
+			if (!(payer in netTotals)) continue;
 			for (const split of expense.splits) {
 				// Skip the person who paid, they are owed money not owing
 				// Also skip splits that have already been settled
 				if (split.userId === payer || split.paid) continue;
 
 				const debtor = split.userId;
+				// Skip splits for deleted users
+				if (!(debtor in netTotals)) continue;
 				const amount = split.amount;
 
 				// Update running totals
@@ -183,6 +187,13 @@ export const getGroupExpenses = query({
 
 		// Second pass: Apply all settlements to reduce outstanding debts
 		for (const settlement of settlements) {
+			// Skip settlements involving deleted users
+			if (
+				!(settlement.paidByUserId in netTotals) ||
+				!(settlement.receivedByUserId in netTotals)
+			) {
+				continue;
+			}
 			netTotals[settlement.paidByUserId] += settlement.amount;
 			netTotals[settlement.receivedByUserId] -= settlement.amount;
 
@@ -229,7 +240,7 @@ export const getGroupExpenses = query({
 		────────────────────────────────────────────────────────────────────────── */
 
 		// Build per-user balance view with who they owe and who owes them
-		const balances = memberDetails.map((member) => ({
+		const balances = validMemberDetails.map((member) => ({
 			...member,
 			totalBalance: netTotals[member.id],
 			owes: Object.entries(pairwiseLedger[member.id])
@@ -247,7 +258,7 @@ export const getGroupExpenses = query({
 
 		// Lookup map for efficient user reference resolution on client
 		const userLookupMap = Object.fromEntries(
-			memberDetails.map((member) => [member.id, member]),
+			validMemberDetails.map((member) => [member.id, member]),
 		);
 
 		return {
@@ -256,7 +267,7 @@ export const getGroupExpenses = query({
 				name: group.name,
 				description: group.description,
 			},
-			members: memberDetails,
+			members: validMemberDetails,
 			expenses,
 			settlements,
 			balances,
