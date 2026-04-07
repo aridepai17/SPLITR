@@ -67,23 +67,39 @@ export const getGroupOfMembers = query({
 					createdBy: selectedGroup.createdBy,
 					members: validMembers,
 				},
-				groups: userGroups.map((group) => ({
+				groups: await Promise.all(userGroups.map(async (group) => {
+				// Count only active members with existing user accounts
+				const memberExists = await Promise.all(
+					group.members.map(m => ctx.db.get(m.userId))
+				);
+				const activeMemberCount = memberExists.filter(u => u !== null).length;
+
+				return {
 					id: group._id,
 					name: group.name,
 					description: group.description,
-					memberCount: group.members.length,
-				})),
+					memberCount: activeMemberCount,
+				};
+			})),
 			};
 		} else {
 			// Return lightweight list only - skip expensive member hydration
 			return {
 				selectedGroup: null,
-				groups: userGroups.map((group) => ({
+				groups: await Promise.all(userGroups.map(async (group) => {
+				// Count only active members with existing user accounts
+				const memberExists = await Promise.all(
+					group.members.map(m => ctx.db.get(m.userId))
+				);
+				const activeMemberCount = memberExists.filter(u => u !== null).length;
+
+				return {
 					id: group._id,
 					name: group.name,
 					description: group.description,
-					memberCount: group.members.length,
-				})),
+					memberCount: activeMemberCount,
+				};
+			})),
 			};
 		}
 	},
