@@ -29,6 +29,20 @@ export const createExpense = mutation({
 	handler: async (ctx, args) => {
 		const user = await ctx.runQuery(internal.users.getCurrentUser);
 
+		// For 1:1 expenses, validate that referenced users exist
+		if (!args.groupId) {
+			const payer = await ctx.db.get(args.paidByUserId);
+			if (!payer) {
+				throw new Error("Payer not found");
+			}
+			for (const split of args.splits) {
+				const splitUser = await ctx.db.get(split.userId);
+				if (!splitUser) {
+					throw new Error(`User ${split.userId} in splits not found`);
+				}
+			}
+		}
+
 		// Validate group membership if this expense belongs to a group
 		if (args.groupId) {
 			const group = await ctx.db.get(args.groupId);
@@ -44,16 +58,24 @@ export const createExpense = mutation({
 			}
 
 			// Verify payer is a valid group member
-			const payerIsMember = group.members.some(m => m.userId === args.paidByUserId);
+			const payerIsMember = group.members.some(
+				(m) => m.userId === args.paidByUserId,
+			);
 			if (!payerIsMember) {
-				throw new Error(`User ${args.paidByUserId} is not a member of this group`);
+				throw new Error(
+					`User ${args.paidByUserId} is not a member of this group`,
+				);
 			}
 
 			// Verify every user listed in splits is a valid group member
 			for (const split of args.splits) {
-				const splitUserIsMember = group.members.some(m => m.userId === split.userId);
+				const splitUserIsMember = group.members.some(
+					(m) => m.userId === split.userId,
+				);
 				if (!splitUserIsMember) {
-					throw new Error(`User ${split.userId} in splits is not a member of this group`);
+					throw new Error(
+						`User ${split.userId} in splits is not a member of this group`,
+					);
 				}
 			}
 		}
@@ -248,6 +270,14 @@ export const deleteExpense = mutation({
 			expense.paidByUserId !== user._id
 		) {
 			throw new Error("You don't have permission to delete this expense");
+		}
+
+		// For group expenses, also verify user is still a member
+		if (expense.groupId) {
+			const group = await ctx.db.get(expense.groupId);
+			if (group && !group.members.some((m) => m.userId === user._id)) {
+				throw new Error("You are no longer a member of this group");
+			}
 		}
 
 		// Find all settlements that reference this expense
