@@ -42,6 +42,20 @@ export const createExpense = mutation({
 			if (!isMember) {
 				throw new Error("You are not a member of this group");
 			}
+
+			// Verify payer is a valid group member
+			const payerIsMember = group.members.some(m => m.userId === args.paidByUserId);
+			if (!payerIsMember) {
+				throw new Error(`User ${args.paidByUserId} is not a member of this group`);
+			}
+
+			// Verify every user listed in splits is a valid group member
+			for (const split of args.splits) {
+				const splitUserIsMember = group.members.some(m => m.userId === split.userId);
+				if (!splitUserIsMember) {
+					throw new Error(`User ${split.userId} in splits is not a member of this group`);
+				}
+			}
 		}
 
 		// Verify split integrity: sum of all splits must equal total amount
