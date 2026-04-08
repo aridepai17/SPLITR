@@ -21,13 +21,21 @@ export function GroupBalances({ balances }) {
 	const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
 
 	// Guards
-	if (!balances?.length || !currentUser) {
+	if (!balances?.length) {
 		return (
 			<div className="text-center py-4 text-muted-foreground">
 				No balance information available
 			</div>
 		);
 	}
+
+    if (!currentUser) {
+        return (
+            <div className="text-center py-4 text-muted-foreground">
+                Loading balance information...
+            </div>
+        )
+    }
 
 	// Helpers
 	const me = balances.find((b) => b.id === currentUser._id);
