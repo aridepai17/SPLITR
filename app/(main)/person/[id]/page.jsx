@@ -32,6 +32,26 @@ export default function PersonExpensesPage() {
 		);
 	}
 
+	if (!data || !data.otherUser) {
+		return (
+			<div className="container mx-auto py-12">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-xl">
+							Unable to load details
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="text-muted-foreground">
+							This person could not be found or you don't have
+							access.
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
 	const otherUser = data?.otherUser;
 	const expenses = data?.expenses || [];
 	const settlements = data?.settlements || [];
@@ -139,14 +159,18 @@ export default function PersonExpensesPage() {
 						expenses={expenses}
 						showOtherPerson={false}
 						otherPersonId={params.id}
-						userLookupMap={otherUser ? { [otherUser.id]: otherUser } : {}}
+						userLookupMap={
+							otherUser ? { [otherUser.id]: otherUser } : {}
+						}
 					/>
 				</TabsContent>
 
 				<TabsContent value="settlements" className="space-y-4">
 					<SettlementList
 						settlements={settlements}
-						userLookupMap={otherUser ? { [otherUser.id]: otherUser } : {}}
+						userLookupMap={
+							otherUser ? { [otherUser.id]: otherUser } : {}
+						}
 					/>
 				</TabsContent>
 			</Tabs>
