@@ -15,7 +15,6 @@ export function SettlementList({
 	userLookupMap,
 }) {
 	const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
-	console.log("settlements", settlements);
 
 	if (!settlements || !settlements.length) {
 		return (
