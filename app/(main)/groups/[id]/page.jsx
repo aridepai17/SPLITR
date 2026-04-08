@@ -8,7 +8,7 @@ import { useConvexQuery } from "@/hooks/use-convex-query";
 import { BarLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/u/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, ArrowLeftRight, ArrowLeft, Users } from "lucide-react";
 import { ExpenseList } from "@/components/expense-list";
 import { SettlementList } from "@/components/settlement-list";
@@ -37,7 +37,7 @@ export default function GroupExpensesPage() {
 	const expenses = data?.expenses || [];
 	const settlements = data?.settlements || [];
 	const balances = data?.balances || [];
-	const userLookupMap = data?.userLookupMap || [];
+	const userLookupMap = data?.userLookupMap || {};
 
 	return (
 		<div className="container mx-auto py-6 max-w-4xl">
@@ -132,6 +132,14 @@ export default function GroupExpensesPage() {
 					<SettlementList
 						settlements={settlements}
 						isGroupSettlment={true}
+						userLookupMap={userLookupMap}
+					/>
+				</TabsContent>
+
+				<TabsContent value="expenses" className="space-y-4">
+					<ExpenseList
+						expenses={expenses}
+						isGroupExpense={true}
 						userLookupMap={userLookupMap}
 					/>
 				</TabsContent>
