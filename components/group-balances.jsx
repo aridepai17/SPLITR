@@ -46,6 +46,11 @@ export function GroupBalances({ balances }) {
 		.map(({ from, amount }) => ({ ...userMap[from], amount }))
 		.sort((a, b) => b.amount - a.amount);
 
+	// Who do I owe?
+	const owingToMembers = me.owes
+		.map(({ to, amount }) => ({ ...userMap[to], amount }))
+		.sort((a, b) => b.amount - a.amount);
+
 	const isAllSettledUp =
 		me.totalBalance === 0 &&
 		owedByMembers.length === 0 &&
