@@ -113,7 +113,7 @@ export default function PersonExpensesPage() {
 						<div
 							className={`text-2xl font-bold ${balance > 0 ? "text-green-600" : balance < 0 ? "text-red-600" : ""}`}
 						>
-							${Math.abs(balance.toFixed(2))}
+							${Math.abs(balance).toFixed(2)}
 						</div>
 					</div>
 				</CardContent>
@@ -139,14 +139,14 @@ export default function PersonExpensesPage() {
 						expenses={expenses}
 						showOtherPerson={false}
 						otherPersonId={params.id}
-						userLookupMap={{ [otherUser.id]: otherUser }}
+						userLookupMap={otherUser ? { [otherUser.id]: otherUser } : {}}
 					/>
 				</TabsContent>
 
 				<TabsContent value="settlements" className="space-y-4">
 					<SettlementList
 						settlements={settlements}
-						userLookupMap={{ [otherUser.id]: otherUser }}
+						userLookupMap={otherUser ? { [otherUser.id]: otherUser } : {}}
 					/>
 				</TabsContent>
 			</Tabs>
