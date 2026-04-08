@@ -9,11 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 
-export function SettlementList([
+export function SettlementList({
 	settlements,
 	isGroupSettlment = false,
 	userLookupMap,
-]) {
+}) {
 	const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
 	console.log("settlements", settlements);
 
@@ -68,7 +68,7 @@ export function SettlementList([
 												? `You paid ${receiver.name}`
 												: isCurrentUserReceiver
 													? `${payer.name} paid you`
-													: `${(payer, name)} paid ${receiver.name}`}
+													: `${(payer.name)} paid ${receiver.name}`}
 										</h3>
 										<div className="flex items-center text-sm text-muted-foreground gap-2">
 											<span>
