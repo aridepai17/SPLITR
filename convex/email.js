@@ -27,7 +27,11 @@ export const sendEmail = action({
 				text: args.text,
 			});
 
-			return { success: true, id: result.id };
+			if (result.error) {
+				return { success: false, error: result.error };
+			}
+
+			return { success: true, id: result.data.id };
 		} catch (error) {
 			return { success: false, error: error.message };
 		}
