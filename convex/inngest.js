@@ -116,15 +116,26 @@ export const getUsersWithOutstandingDebts = query({
 
 // Get user with expenses for AI insights
 export const getUsersWithExpenses = query({
-	handler: async (ctx) => {
+	args: {
+		monthStart: v.optional(v.number()), // Optional timestamp override
+	},
+	handler: async (ctx, args) => {
 		const users = await ctx.db.query("users").collect();
 		const result = [];
 
-		// Get current month start
-		const now = new Date();
-		const oneMonthAgo = new Date(now);
-		oneMonthAgo.setMonth(now.getMonth() - 1);
-		const monthStart = oneMonthAgo.getTime();
+		// Use provided monthStart or compute current month start
+		const monthStart = args.monthStart ?? (() => {
+			const now = new Date();
+			const oneMonthAgo = new Date(now);
+			oneMonthAgo.setMonth(now.getMonth() - 1);
+			return oneMonthAgo.getTime();
+		})();
+
+		// Fetch all recent expenses once (shared across all users)
+		const allRecentExpenses = await ctx.db
+			.query("expenses")
+			.withIndex("by_date", (q) => q.gte("date", monthStart))
+			.collect();
 
 		for (const user of users) {
 			// First, check expenses where this user is the payer
@@ -134,20 +145,17 @@ export const getUsersWithExpenses = query({
 				.filter((q) => q.eq(q.field("paidByUserId"), user._id))
 				.collect();
 
-			// Check all expenses to find the ones where user is in splits and should be done separately because we can't filter directly on array contents
-			const allRecentExpenses = await ctx.db
-				.query("expenses")
-				.withIndex("by_date", (q) => q.gte("date", monthStart))
-				.collect();
-
+			// Filter the pre-fetched expenses for user's split involvement
 			const splitExpenses = allRecentExpenses.filter((expense) =>
 				expense.splits.some((split) => split.userId === user._id),
 			);
 
-			// Combine both sets of expenses
-			const userExpenses = [
-				...new Set([...paidExpenses, ...splitExpenses]),
-			];
+			// Combine both sets of expenses with proper deduplication by _id
+			const expenseMap = new Map();
+			[...paidExpenses, ...splitExpenses].forEach(expense => {
+				expenseMap.set(expense._id, expense);
+			});
+			const userExpenses = Array.from(expenseMap.values());
 
 			if (userExpenses.length > 0) {
 				result.push({
@@ -164,13 +172,18 @@ export const getUsersWithExpenses = query({
 
 // Get a specific user's expenses for the past month
 export const getUserMonthlyExpenses = query({
-	args: { userId: v.id("users") },
+	args: {
+		userId: v.id("users"),
+		monthStart: v.optional(v.number()), // Optional timestamp override
+	},
 	handler: async (ctx, args) => {
-		// Get current month start
-		const now = new Date();
-		const oneMonthAgo = new Date(now);
-		oneMonthAgo.setMonth(now.getMonth() - 1);
-		const monthStart = oneMonthAgo.getTime();
+		// Use provided monthStart or compute current month start
+		const monthStart = args.monthStart ?? (() => {
+			const now = new Date();
+			const oneMonthAgo = new Date(now);
+			oneMonthAgo.setMonth(now.getMonth() - 1);
+			return oneMonthAgo.getTime();
+		})();
 
 		// Get all expenses involving this user from the past month
 		const allExpenses = await ctx.db
