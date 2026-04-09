@@ -9,10 +9,14 @@ export const sendEmail = action({
 		subject: v.string(),
 		html: v.string(),
 		text: v.optional(v.string()),
-		apiKey: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const resend = new Resend(args.apiKey);
+		const apiKey = process.env.RESEND_API_KEY;
+		if (!apiKey) {
+			throw new Error("RESEND_API_KEY environment variable is not configured");
+		}
+
+		const resend = new Resend(apiKey);
 
 		try {
 			const result = await resend.emails.send({
