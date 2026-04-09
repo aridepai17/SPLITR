@@ -201,17 +201,31 @@ export const getUserMonthlyExpenses = query({
 
 		// Format expenses for AI analysis
 		return userExpenses.map((expense) => {
+			const isPayer = expense.paidByUserId === args.userId;
+
 			// Get the user's share of this expense
 			const userSplit = expense.splits.find(
 				(split) => split.userId === args.userId,
 			);
 
+			// If user is the payer but not in splits, they paid the full amount
+			// If user is not the payer and has no split, skip this expense
+			let amount;
+			if (isPayer) {
+				amount = userSplit ? userSplit.amount : expense.amount;
+			} else if (userSplit) {
+				amount = userSplit.amount;
+			} else {
+				// This shouldn't happen given our filtering, but be safe
+				amount = 0;
+			}
+
 			return {
 				description: expense.description,
 				category: expense.category,
 				date: expense.date,
-				amount: userSplit ? userSplit.amount : 0,
-				isPayer: expense.paidByUserId === args.userId,
+				amount,
+				isPayer,
 				isGroup: expense.groupId !== undefined,
 			};
 		});
