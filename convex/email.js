@@ -16,11 +16,22 @@ export const sendEmail = action({
 			throw new Error("RESEND_API_KEY environment variable is not configured");
 		}
 
+		const fromEmail = process.env.RESEND_FROM_EMAIL;
+		if (!fromEmail) {
+			throw new Error("RESEND_FROM_EMAIL environment variable is not configured");
+		}
+
+		// Basic email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(fromEmail)) {
+			throw new Error("RESEND_FROM_EMAIL is not a valid email address");
+		}
+
 		const resend = new Resend(apiKey);
 
 		try {
 			const result = await resend.emails.send({
-				from: "Splitr <onboarding@resend.dev>",
+				from: `Splitr <${fromEmail}>`,
 				to: args.to,
 				subject: args.subject,
 				html: args.html,
