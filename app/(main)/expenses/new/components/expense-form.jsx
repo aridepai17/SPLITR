@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-forms";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/convex/_generated/api";
-import { useConvexMutation, useConvexQuery } from "convex/react";
+import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ParticipantSelector } from "./participant-selector";
-import { CategorySelector, GroupSelector } from "./category-selector";
+import { CategorySelector } from "./category-selector";
+import { GroupSelector } from "./group-selector";
 import { SplitSelector } from "./split-selector";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -80,14 +81,14 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 
 	// When a user is added or removed, update the participant list
 	useEffect(() => {
-		if (ParticipantSelector.length === 0 && currentUser) {
+		if (participants.length === 0 && currentUser) {
 			// Always add the current user as participant
 			setParticipants([
 				{
 					id: currentUser._id,
 					name: currentUser._name,
 					email: currentUser._email,
-					imageUrl: currentUser._iamgeUrl,
+					imageUrl: currentUser._imageUrl,
 				},
 			]);
 		}
@@ -271,7 +272,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 					<div className="space-y-2">
 						<Label>Participants</Label>
 						<ParticipantSelector
-							participants={participant}
+							participants={participants}
 							onParticipantsChange={setParticipants}
 						/>
 						{participants.length <= 1 && (
