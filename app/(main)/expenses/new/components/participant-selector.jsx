@@ -48,6 +48,9 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
 
 	// Remove a participant
 	const removeParticipant = (userId) => {
+		// Guard against undefined currentUser
+		if (!currentUser) return;
+
 		// Don't allow removing yourself
 		if (userId === currentUser._id) {
 			return;
@@ -72,9 +75,10 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
 							</AvatarFallback>
 						</Avatar>
 						<span>
-							{participant.id !== currentUser?._id && (
+							{currentUser && participant.id !== currentUser._id && (
 								<Button
 									type="button"
+									aria-label={`Remove ${participant.name}`}
 									onClick={() =>
 										removeParticipant(participant.id)
 									}
