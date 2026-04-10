@@ -86,9 +86,9 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 			setParticipants([
 				{
 					id: currentUser._id,
-					name: currentUser._name,
-					email: currentUser._email,
-					imageUrl: currentUser._imageUrl,
+					name: currentUser.name,
+					email: currentUser.email,
+					imageUrl: currentUser.imageUrl,
 				},
 			]);
 		}
@@ -157,7 +157,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 		<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 			<div className="space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="sapce-y-2">
+					<div className="space-y-2">
 						<Label htmlFor="description">Description</Label>
 						<Input
 							id="description"
