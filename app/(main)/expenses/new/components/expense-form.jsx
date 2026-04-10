@@ -193,6 +193,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 						<Label htmlFor="category">Category</Label>
 						<CategorySelector
 							categories={categories || []}
+							defaultCategoryId="other"
 							onChange={(categoryId) => {
 								if (categoryId) {
 									setValue("category", categoryId);

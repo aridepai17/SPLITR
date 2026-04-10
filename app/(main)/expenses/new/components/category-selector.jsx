@@ -9,8 +9,22 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-export function CategorySelector({ categories, onChange }) {
+export function CategorySelector({ categories, onChange, defaultCategoryId }) {
 	const [selectedCategory, setSelectedCategory] = useState("");
+
+	// Set default value when categories change or component mounts
+	useEffect(() => {
+		if (!selectedCategory && categories && categories.length > 0) {
+			// Find the default category by ID, or fall back to the first category
+			const defaultCategory =
+				categories.find((cat) => cat.id === defaultCategoryId) || categories[0];
+
+			setSelectedCategory(defaultCategory.id);
+			if (onChange) {
+				onChange(defaultCategory.id);
+			}
+		}
+	}, [selectedCategory, categories, defaultCategoryId, onChange]);
 
 	// Handle when a category is selected
 	const handleCategoryChange = (categoryId) => {
@@ -26,20 +40,6 @@ export function CategorySelector({ categories, onChange }) {
 	if (!categories || categories.length === 0) {
 		return <div>No categories available</div>;
 	}
-
-	// Set default value when categories change or component mounts
-	useEffect(() => {
-		if (!selectedCategory && categories.length > 0) {
-			// Find a default category or use the first one
-			const defaultCategory =
-				categories.find((cat) => cat.isDefault) || categories[0];
-
-			setSelectedCategory(defaultCategory.id);
-			if (onChange) {
-				onChange(defaultCategory.id);
-			}
-		}
-	}, [selectedCategory, categories, onChange]);
 
 	return (
 		<Select value={selectedCategory} onValueChange={handleCategoryChange}>
