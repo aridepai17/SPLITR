@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/command";
 import {
 	Popover,
-	PopoverConent,
+	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
 
@@ -72,7 +72,7 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
 							</AvatarFallback>
 						</Avatar>
 						<span>
-							{participant.id === currentUser?._id && (
+							{participant.id !== currentUser?._id && (
 								<Button
 									type="button"
 									onClick={() =>
@@ -103,9 +103,9 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
 						<PopoverContent className="p-0" align="start">
 							<Command>
 								<CommandInput
-									placholder="Search by name or email..."
+									placeholder="Search by name or email..."
 									value={searchQuery}
-									onValueChagnge={setSearchQuery}
+									onValueChange={setSearchQuery}
 								/>
 								<CommandList>
 									<CommandEmpty>
