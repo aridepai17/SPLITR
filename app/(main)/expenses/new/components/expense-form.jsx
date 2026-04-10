@@ -329,6 +329,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 								amount={parseFloat(amountValue) || 0}
 								participants={participants}
 								paidByUserId={paidByUserId}
+								splits={splits}
 								onSplitChange={setSplits}
 							/>
 						</TabsContent>
@@ -341,6 +342,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 								amount={parseFloat(amountValue) || 0}
 								participants={participants}
 								paidByUserId={paidByUserId}
+								splits={splits}
 								onSplitChange={setSplits}
 							/>
 						</TabsContent>
@@ -353,6 +355,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 								amount={parseFloat(amountValue) || 0}
 								participants={participants}
 								paidByUserId={paidByUserId}
+								splits={splits}
 								onSplitChange={setSplits}
 							/>
 						</TabsContent>

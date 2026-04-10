@@ -17,6 +17,7 @@ export function SplitSelector({
 	amount,
 	participants,
 	paidByUserId,
+	splits,
 	onSplitChange,
 }) {
 	useEffect(() => {
@@ -28,7 +29,7 @@ export function SplitSelector({
 		let newSplits = [];
 
 		switch (type) {
-			case "equal":
+			case "equal": {
 				// Split equally among all participants
 				const equalAmount = amount / participants.length;
 				newSplits = participants.map((participant) => ({
@@ -37,8 +38,9 @@ export function SplitSelector({
 					name: participant.name,
 				}));
 				break;
+			}
 
-			case "percentage":
+			case "percentage": {
 				// Initialize with equal percentages
 				const equalPercentage = 100 / participants.length;
 				newSplits = participants.map((participant) => ({
@@ -48,6 +50,7 @@ export function SplitSelector({
 					name: participant.name,
 				}));
 				break;
+			}
 
 			case "exact":
 				// Initialize with zero amounts for manual entry
@@ -66,25 +69,23 @@ export function SplitSelector({
 	}, [type, amount, participants, onSplitChange]);
 
 	const handleSplitChange = (userId, value) => {
-		const updatedSplits = participants.map((participant) => {
-			if (participant.id === userId) {
+		const updatedSplits = splits.map((split) => {
+			if (split.userId === userId) {
 				if (type === "percentage") {
 					const percentage = parseFloat(value) || 0;
 					return {
-						userId,
+						...split,
 						amount: (amount * percentage) / 100,
 						percentage,
-						name: participant.name,
 					};
 				} else {
 					return {
-						userId,
+						...split,
 						amount: parseFloat(value) || 0,
-						name: participant.name,
 					};
 				}
 			}
-			return participants.find((p) => p.id === participant.id);
+			return split;
 		});
 
 		onSplitChange(updatedSplits);
@@ -109,8 +110,8 @@ export function SplitSelector({
 							max={type === "percentage" ? "100" : undefined}
 							value={
 								type === "percentage"
-									? participants.find((p) => p.id === participant.id)?.percentage || 0
-									: participants.find((p) => p.id === participant.id)?.amount || 0
+									? splits.find((s) => s.userId === participant.id)?.percentage || 0
+									: splits.find((s) => s.userId === participant.id)?.amount || 0
 							}
 							onChange={(e) => handleSplitChange(participant.id, e.target.value)}
 							placeholder={type === "percentage" ? "%" : "$"}
@@ -118,8 +119,8 @@ export function SplitSelector({
 					</div>
 					<div className="text-sm text-muted-foreground w-16">
 						{type === "percentage" ? "%" : "$"}
-						{participants
-							.find((p) => p.id === participant.id)
+						{splits
+							.find((s) => s.userId === participant.id)
 							?.amount?.toFixed(2)}
 					</div>
 				</div>
