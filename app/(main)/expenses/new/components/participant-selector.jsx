@@ -74,6 +74,9 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
 								{participant.name?.charAt(0) || "?"}
 							</AvatarFallback>
 						</Avatar>
+						<span className="text-sm">
+							{participant.name || "Unknown"}
+						</span>
 						<span>
 							{currentUser && participant.id !== currentUser._id && (
 								<Button
