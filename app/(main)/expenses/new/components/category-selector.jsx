@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	Select,
 	SelectContent,
@@ -27,20 +27,19 @@ export function CategorySelector({ categories, onChange }) {
 		return <div>No categories available</div>;
 	}
 
-	// Set default value if not already set
-	if (!selectedCategory && categories.length > 0) {
-		// Find a default category or use the first one
-		const defaultCategory =
-			categories.fint((cat) => cat.isDefault) || categories[0];
+	// Set default value when categories change or component mounts
+	useEffect(() => {
+		if (!selectedCategory && categories.length > 0) {
+			// Find a default category or use the first one
+			const defaultCategory =
+				categories.find((cat) => cat.isDefault) || categories[0];
 
-		// Set the default without triggering a re-render loop
-		setTimeout(() => {
 			setSelectedCategory(defaultCategory.id);
 			if (onChange) {
 				onChange(defaultCategory.id);
 			}
-		}, 0);
-	}
+		}
+	}, [selectedCategory, categories, onChange]);
 
 	return (
 		<Select value={selectedCategory} onValueChange={handleCategoryChange}>
