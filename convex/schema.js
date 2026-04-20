@@ -45,8 +45,16 @@ export default defineSchema({
 				joinedAt: v.number(),
 			}),
 		),
+	}),
+
+	groupMembers: defineTable({
+		groupId: v.id("groups"),
+		userId: v.id("users"),
+		role: v.string(), // "admin" or "member"
+		joinedAt: v.number(),
 	})
-		.index("by_member", ["members.userId"]),
+		.index("by_user", ["userId"])
+		.index("by_user_and_group", ["userId", "groupId"]),
 
 	settlements: defineTable({
 		amount: v.number(),

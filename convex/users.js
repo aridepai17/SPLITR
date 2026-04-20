@@ -31,13 +31,15 @@ export const store = mutation({
 		// If it's a new identity, create a new `User`.
 		return await ctx.db.insert("users", {
 			name: identity.name ?? "Anonymous",
+			email: identity.email ?? "",
+			imageUrl: identity.pictureUrl,
 			tokenIdentifier: identity.tokenIdentifier,
 		});
 	},
 });
 
 // Get current user
-export const getCurrentUser = internalQuery({
+export const getCurrentUser = query({
 	handler: async (ctx) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {

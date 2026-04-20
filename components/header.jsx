@@ -30,6 +30,7 @@ const Header = () => {
 						width={200}
 						height={60}
 						className="h-11 w-auto object-contain"
+						loading="eager"
 					/>
 				</Link>
 				{path === "/" && (

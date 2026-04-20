@@ -161,11 +161,10 @@ export const getUserGroups = query({
 	handler: async (ctx) => {
 		const user = await ctx.runQuery(internal.users.getCurrentUser);
 
-		// Indexed lookup of groups where user is a member
-		const groups = await ctx.db
-			.query("groups")
-			.withIndex("by_member", q => q.eq("members.userId", user._id))
-			.collect();
+		// Lookup of groups where user is a member
+		const groupMembers = await ctx.db.query("groupMembers").withIndex("by_user", q => q.eq("userId", user._id)).collect();
+		const groupIds = groupMembers.map(gm => gm.groupId);
+		const groups = await Promise.all(groupIds.map(id => ctx.db.get(id)));
 
 		// Calculate balances for each group
 		const enhancedGroups = await Promise.all(

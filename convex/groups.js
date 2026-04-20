@@ -20,11 +20,10 @@ export const getGroupOfMembers = query({
 		// Authenticate and resolve current user
 		const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
 
-		// Fetch all groups and filter to only those user is a member of
-		const allGroups = await ctx.db.query("groups").collect();
-		const userGroups = allGroups.filter((group) =>
-			group.members.some((member) => member.userId === currentUser._id),
-		);
+		// Fetch groups where user is a member using normalized table
+		const groupMembers = await ctx.db.query("groupMembers").withIndex("by_user", q => q.eq("userId", currentUser._id)).collect();
+		const groupIds = groupMembers.map(gm => gm.groupId);
+		const userGroups = await Promise.all(groupIds.map(id => ctx.db.get(id)));
 
 		// When specific group is requested, hydrate full member details
 		if (args.groupId) {
