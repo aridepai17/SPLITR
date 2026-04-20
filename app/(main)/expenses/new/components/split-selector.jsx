@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,32 @@ export function SplitSelector({
 	const [totalPercentage, setTotalPercentage] = useState(0);
 	const [totalAmount, setTotalAmount] = useState(0);
 
-	// Calculate splits when inputs change
+	// Track the previous amount to detect changes for rescaling
+	const prevAmountRef = useRef(amount);
+	const onSplitsChangeRef = useRef(onSplitsChange);
+
+	// Keep the callback ref up to date without triggering re-renders
+	onSplitsChangeRef.current = onSplitsChange;
+
+	// Helper to build initial split from participant
+	const buildInitialSplit = (participant) => {
+		return {
+			userId: participant.id,
+			name: participant.name,
+			email: participant.email,
+			imageUrl: participant.imageUrl,
+			amount: 0,
+			percentage: 0,
+			paid: participant.id === paidByUserId,
+		};
+	};
+
+	// Effect 1: Initialization - runs when type, participants, or paidByUserId changes
 	useEffect(() => {
-		if (!amount || amount <= 0 || participants.length === 0) {
+		if (participants.length === 0) {
+			setSplits([]);
+			setTotalAmount(0);
+			setTotalPercentage(0);
 			return;
 		}
 
@@ -30,35 +53,23 @@ export function SplitSelector({
 		if (type === "equal") {
 			const shareAmount = amount / participants.length;
 			newSplits = participants.map((participant) => ({
-				userId: participant.id,
-				name: participant.name,
-				email: participant.email,
-				imageUrl: participant.imageUrl,
+				...buildInitialSplit(participant),
 				amount: shareAmount,
 				percentage: 100 / participants.length,
-				paid: participant.id === paidByUserId,
 			}));
 		} else if (type === "percentage") {
 			const evenPercentage = 100 / participants.length;
 			newSplits = participants.map((participant) => ({
-				userId: participant.id,
-				name: participant.name,
-				email: participant.email,
-				imageUrl: participant.imageUrl,
+				...buildInitialSplit(participant),
 				amount: (amount * evenPercentage) / 100,
 				percentage: evenPercentage,
-				paid: participant.id === paidByUserId,
 			}));
 		} else if (type === "exact") {
 			const evenAmount = amount / participants.length;
 			newSplits = participants.map((participant) => ({
-				userId: participant.id,
-				name: participant.name,
-				email: participant.email,
-				imageUrl: participant.imageUrl,
+				...buildInitialSplit(participant),
 				amount: evenAmount,
 				percentage: (evenAmount / amount) * 100,
-				paid: participant.id === paidByUserId,
 			}));
 		}
 
@@ -76,10 +87,55 @@ export function SplitSelector({
 		setTotalAmount(newTotalAmount);
 		setTotalPercentage(newTotalPercentage);
 
-		if (onSplitsChange) {
-			onSplitsChange(newSplits);
+		if (onSplitsChangeRef.current) {
+			onSplitsChangeRef.current(newSplits);
 		}
-	}, [type, amount, participants, paidByUserId, onSplitsChange]);
+	}, [type, participants, paidByUserId]);
+
+	// Effect 2: Rescale - runs when amount changes (not on initialization)
+	useEffect(() => {
+		const prevAmount = prevAmountRef.current;
+
+		// Skip if amount hasn't actually changed or is invalid
+		if (
+			!amount ||
+			amount <= 0 ||
+			prevAmount === amount ||
+			splits.length === 0
+		) {
+			prevAmountRef.current = amount;
+			return;
+		}
+
+		// Scale existing splits proportionally
+		const scaleFactor = amount / prevAmount;
+
+		const scaledSplits = splits.map((split) => ({
+			...split,
+			amount: split.amount * scaleFactor,
+			// Percentage stays the same when rescaling by amount
+		}));
+
+		setSplits(scaledSplits);
+
+		const newTotalAmount = scaledSplits.reduce(
+			(sum, split) => sum + split.amount,
+			0,
+		);
+		const newTotalPercentage = scaledSplits.reduce(
+			(sum, split) => sum + split.percentage,
+			0,
+		);
+
+		setTotalAmount(newTotalAmount);
+		setTotalPercentage(newTotalPercentage);
+
+		if (onSplitsChangeRef.current) {
+			onSplitsChangeRef.current(scaledSplits);
+		}
+
+		prevAmountRef.current = amount;
+	}, [amount]);
 
 	const updatePercentageSplit = (userId, newPercentage) => {
 		const updatedSplits = splits.map((split) => {
@@ -101,8 +157,8 @@ export function SplitSelector({
 			updatedSplits.reduce((sum, split) => sum + split.percentage, 0),
 		);
 
-		if (onSplitsChange) {
-			onSplitsChange(updatedSplits);
+		if (onSplitsChangeRef.current) {
+			onSplitsChangeRef.current(updatedSplits);
 		}
 	};
 
@@ -129,8 +185,8 @@ export function SplitSelector({
 			updatedSplits.reduce((sum, split) => sum + split.percentage, 0),
 		);
 
-		if (onSplitsChange) {
-			onSplitsChange(updatedSplits);
+		if (onSplitsChangeRef.current) {
+			onSplitsChangeRef.current(updatedSplits);
 		}
 	};
 
