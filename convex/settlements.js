@@ -69,13 +69,18 @@ export const getSettlementData = query({
 		entityId: v.string(), // Convex _id (string form) of the user or group
 	},
 	handler: async (ctx, args) => {
-		// Use centralized getCurrentUser function
-		const me = await ctx.runQuery(internal.users.getCurrentUser);
+	// Use centralized getCurrentUser function
+	const me = await ctx.runQuery(internal.users.getCurrentUser);
 
-		if (args.entityType === "user") {
-			// User page
-			const other = await ctx.db.get(args.entityId);
-			if (!other) throw new Error("User not found");
+	// Validate and normalize entityId
+	const table = args.entityType === "user" ? "users" : "groups";
+	const normalizedId = ctx.db.normalizeId(table, args.entityId);
+	if (!normalizedId) throw new Error(`Invalid ${args.entityType} ID`);
+
+	if (args.entityType === "user") {
+		// User page
+		const other = await ctx.db.get(normalizedId);
+		if (!other) throw new Error("User not found");
 
 			// Gather expenses where either of us paid or appears in splits
 			const myExpenses = await ctx.db
@@ -128,14 +133,16 @@ export const getSettlementData = query({
 				.withIndex("by_user_and_group", (q) =>
 					q.eq("paidByUserId", me._id).eq("groupId", undefined),
 				)
-				.collect();
+				.collect()
+				.then(settlements => settlements.filter(s => s.receivedByUserId === other._id));
 
 			const otherUserSettlements = await ctx.db
 				.query("settlements")
 				.withIndex("by_user_and_group", (q) =>
 					q.eq("paidByUserId", other._id).eq("groupId", undefined),
 				)
-				.collect();
+				.collect()
+				.then(settlements => settlements.filter(s => s.receivedByUserId === me._id));
 
 			const settlements = [...mySettlements, ...otherUserSettlements];
 
@@ -163,7 +170,7 @@ export const getSettlementData = query({
 			};
 		} else if (args.entityType === "group") {
 			// Group page
-			const group = await ctx.db.get(args.entityId);
+			const group = await ctx.db.get(normalizedId);
 			if (!group) throw new Error("Group not found");
 
 			const isMember = group.members.some((m) => m.userId === me._id);
