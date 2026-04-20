@@ -204,8 +204,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 						<CategorySelector
 							categories={categories || []}
 							onChange={(categoryId) => {
-								if (categoryId)
-									setValue("category", categoryId);
+								setValue("category", categoryId || "");
 							}}
 						/>
 					</div>
