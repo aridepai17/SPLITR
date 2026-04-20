@@ -44,7 +44,7 @@ export const getAllContacts = query({
 		});
 
 		// Fetch user documents
-		const contactUsers = await Promise.all(
+		let contactUsers = await Promise.all(
 			[...contactIds].map(async (id) => {
 				const u = await ctx.db.get(id);
 				return u
