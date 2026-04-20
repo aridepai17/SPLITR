@@ -18,7 +18,7 @@ export function GroupSelector({ onChange }) {
 
 	// Single query to get all the data we need
 	const { data, isLoading } = useConvexQuery(
-		api.groups.getGroupOrMembers,
+		api.groups.getGroupOfMembers,
 		selectedGroupId ? { groupId: selectedGroupId } : {},
 	);
 
