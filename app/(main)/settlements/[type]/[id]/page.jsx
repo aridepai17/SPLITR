@@ -19,7 +19,7 @@ export default function SettlementPage() {
 		api.settlements.getSettlementData,
 		{
 			entityType: type,
-			entityid: id,
+			entityId: id,
 		},
 	);
 
@@ -27,6 +27,14 @@ export default function SettlementPage() {
 		return (
 			<div className="container mx-auto py-12">
 				<BarLoader width={"100%"} color="#36d7b7" />
+			</div>
+		);
+	}
+
+	if (!data || (type === "user" && !data.counterpart) || (type === "group" && !data.balances)) {
+		return (
+			<div className="container mx-auto py-12">
+				<p>Settlement data not found.</p>
 			</div>
 		);
 	}
