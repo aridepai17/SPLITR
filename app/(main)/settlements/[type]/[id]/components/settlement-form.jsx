@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,6 +37,7 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 		register,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(settlementSchema),
@@ -53,6 +54,19 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 	// Single user settlement
 	const handleUserSettlement = async (data) => {
 		const amount = parseFloat(data.amount);
+		const netBalance = entityData.netBalance;
+		const outstandingDebt = Math.abs(netBalance);
+
+		// Validate amount against outstanding debt
+		if (amount <= 0) {
+			toast.error("Amount must be greater than 0");
+			return;
+		}
+
+		if (amount > outstandingDebt) {
+			toast.error(`Amount cannot exceed the outstanding balance of ${outstandingDebt.toFixed(2)}`);
+			return;
+		}
 
 		try {
 			// Determine payer and receiver based on the selected payment type
@@ -90,17 +104,30 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 
 		const amount = parseFloat(data.amount);
 
+		// Get the selected user from the group balances
+		const selectedUser = entityData.balances.find(
+			(balance) => balance.userId === selectedUserId,
+		);
+
+		if (!selectedUser) {
+			toast.error("Selected user not found in group");
+			return;
+		}
+
+		// Validate amount against outstanding debt
+		const outstandingDebt = Math.abs(selectedUser.netBalance);
+
+		if (amount <= 0) {
+			toast.error("Amount must be greater than 0");
+			return;
+		}
+
+		if (amount > outstandingDebt) {
+			toast.error(`Amount cannot exceed the outstanding balance of ${outstandingDebt.toFixed(2)}`);
+			return;
+		}
+
 		try {
-			// Get the selected user from the group balances
-			const selectedUser = entityData.balances.find(
-				(balance) => balance.userId === selectedUserId,
-			);
-
-			if (!selectedUser) {
-				toast.error("Selected user not found in group");
-				return;
-			}
-
 			// Determine payer and receiver based on the selected payment type and balances
 			const paidByUserId =
 				data.paymentType === "youPaid"
@@ -139,12 +166,35 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 	// For group settlements, we need to select a member
 	const [selectedGroupMemberId, setSelectedGroupMemberId] = useState(null);
 
+	// Update payment type based on selected group member's balance
+	useEffect(() => {
+		if (entityType === "group" && selectedGroupMemberId && entityData.balances) {
+			const member = entityData.balances.find(b => b.userId === selectedGroupMemberId);
+			if (member) {
+				// If member owes you (negative balance), they need to pay you -> theyPaid
+				// If you owe member (positive balance), you paid -> youPaid
+				const paymentType = member.netBalance < 0 ? "theyPaid" : "youPaid";
+				setValue("paymentType", paymentType);
+			}
+		}
+	}, [selectedGroupMemberId, entityType, entityData.balances, setValue]);
+
 	if (!currentUser) return null;
 
 	// Render the form for individual settlement
 	if (entityType === "user") {
 		const otherUser = entityData.counterpart;
 		const netBalance = entityData.netBalance;
+
+		// Derive initial payment type from balance direction
+		// If they owe you (positive balance), default to "theyPaid" (they paid you)
+		// If you owe them (negative balance), default to "youPaid"
+		const initialPaymentType = netBalance > 0 ? "theyPaid" : "youPaid";
+
+		// Set the default value once when the component loads
+		useEffect(() => {
+			setValue("paymentType", initialPaymentType);
+		}, []);
 
 		return (
 			<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -184,15 +234,9 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 				<div className="space-y-2">
 					<Label>Who paid?</Label>
 					<RadioGroup
-						defaultValue="youPaid"
-						{...register("paymentType")}
+						value={paymentType}
+						onValueChange={(value) => setValue("paymentType", value)}
 						className="flex flex-col space-y-2"
-						onValueChange={(value) => {
-							// This manual approach is needed because RadioGroup doesn't work directly with react-hook-form
-							register("paymentType").onChange({
-								target: { name: "paymentType", value },
-							});
-						}}
 					>
 						<div className="flex items-center space-x-2 border rounded-md p-3">
 							<RadioGroupItem value="youPaid" id="youPaid" />
@@ -294,9 +338,10 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 							const isOwed = member.netBalance > 0; // positive means you owe them
 
 							return (
-								<div
-									key={member.userId}
-									className={`border rounded-md p-3 cursor-pointer transition-colors ${
+								<button
+									type="button"
+									aria-pressed={isSelected}
+									className={`w-full border rounded-md p-3 cursor-pointer transition-colors text-left ${
 										isSelected
 											? "border-primary bg-primary/5"
 											: "hover:bg-muted/50"
@@ -335,7 +380,7 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 													: "Settled up"}
 										</div>
 									</div>
-								</div>
+								</button>
 							);
 						})}
 					</div>
@@ -352,14 +397,9 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
 						<div className="space-y-2">
 							<Label>Who paid?</Label>
 							<RadioGroup
-								defaultValue="youPaid"
-								{...register("paymentType")}
+								value={paymentType}
+								onValueChange={(value) => setValue("paymentType", value)}
 								className="flex flex-col space-y-2"
-								onValueChange={(value) => {
-									register("paymentType").onChange({
-										target: { name: "paymentType", value },
-									});
-								}}
 							>
 								<div className="flex items-center space-x-2 border rounded-md p-3">
 									<RadioGroupItem
