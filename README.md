@@ -155,7 +155,38 @@ Splitr is a modern, full-stack expense splitting application built for seamless 
 3. Mark expenses as settled
 4. Receive automated payment reminders
 
-## 🏗️ Project Structure
+## 🏗️ Architecture
+
+![Splitr Architecture](pics/architecture%20diagram.png)
+
+Splitr follows a modern full-stack architecture with real-time capabilities:
+
+### Frontend Architecture
+- **Next.js 15** with App Router for optimal performance
+- **Client Components** for interactive features
+- **Server Components** for SEO and initial page loads
+- **Custom Hooks** for data fetching and state management
+
+### Backend Architecture
+- **Convex** as the real-time database and API layer
+- **Clerk** for authentication and user management
+- **Inngest** for background job processing and automation
+- **Edge Runtime** for global performance
+
+### Data Flow
+1. **User Interaction** → Next.js Client Components
+2. **API Calls** → Convex Queries/Mutations
+3. **Real-time Updates** → Convex Subscriptions
+4. **Background Jobs** → Inngest Functions
+5. **Authentication** → Clerk Middleware
+
+### Security Layers
+- **Authentication**: Clerk JWT tokens
+- **Authorization**: Convex permission checks
+- **Input Validation**: Zod schemas
+- **Data Encryption**: HTTPS + database encryption
+
+## 📁 Project Structure
 
 ```
 splitr/
@@ -173,7 +204,7 @@ splitr/
 ├── hooks/                # Custom React hooks
 ├── lib/                  # Utility functions
 │   └── inngest/          # Background job handlers
-├── pics/                 # Project images
+├── pics/                 # Project images and diagrams
 └── public/               # Static assets
 ```
 
